@@ -385,6 +385,7 @@ def main():
     processor = DICOMProcessor(ROOT_FOLDER, OUTPUT_FOLDER, CSV_FILENAME)
     processor.run()
 
+    print("Eylulll")
 
 if __name__ == "__main__":
     main()
