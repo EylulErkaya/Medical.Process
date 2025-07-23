@@ -1,3 +1,29 @@
+"""
+Medical DICOM Processing Pipeline
+----------------------------------
+
+Bu modül, dijital mamografi (DICOM formatindaki) medikal görüntüleri işlemek için tasarlanmiş bütünleşik bir sistem sunar. Amaç, ham DICOM dosyalarini otomatik olarak analiz etmek, meme bölgesini tespit ederek kirpmak, PNG formatinda kaydetmek ve hasta bilgilerini organize bir CSV dosyasina aktarmaktir.
+
+İşlem Aşamalari:
+1. DICOM dosyalarini belirtilen klasörde bulur.
+2. Her dosyadan hasta yaşi, görüntü pozisyonu gibi temel metadata bilgilerini çikarir.
+3. Görüntü verisi okunamadiğinda `gdcmconv` ile dekompresyon denemesi yapilir.
+4. Görüntü işleme aşamasinda meme bölgesi tespit edilir:
+   - Önce gelişmiş segmentasyon (Gaussian blur + Otsu threshold + morfolojik işlemler) denenir.
+   - Başarisiz olursa adaptif thresholding ile basit segmentasyon uygulanir.
+5. Tespit edilen bölgeye göre görüntü kirpilir, normalize edilip uint8'e çevrilir ve PNG olarak kaydedilir.
+6. Başariyla işlenen dosyalarin bilgileri `dicom_metadata.csv` dosyasina kaydedilir.
+7. İşlenemeyen dosyalar `failed_files.csv` olarak loglanir.
+
+Yapi:
+- `DICOMProcessor`: Ana işleyici sinif. Tüm işlem adimlarini içerir.
+- `main()`: Parametreleri belirleyip işleyiciyi çaliştiran fonksiyon.
+
+Gereksinimler:
+- `pydicom`, `opencv-python`, `scikit-image`, `Pillow`, `pandas`, `gdcmconv` (harici araç)
+- Python 3.7+ önerilir
+"""
+
 import os
 import pandas as pd
 import pydicom
@@ -9,7 +35,7 @@ from pathlib import Path
 from skimage import morphology, measure
 import logging
 
-# Logging ayarları
+# Logging ayarlari
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -205,7 +231,6 @@ class DICOMProcessor:
                         return None
                 else:
                     return None
-
 
             # Detect breast region
             breast_region = self._detect_breast_region(pixel_array)
